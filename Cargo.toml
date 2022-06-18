@@ -12,6 +12,12 @@ A program to automatically annotate changes to a file in git(1).
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+incremental = false
+
 [dependencies]
 once_cell = {version = "1.10.0", default-features = false, features = ["std"]}
 regex = {version = "1.5.5", default-features = false, features = ["perf", "std"]}
