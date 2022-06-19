@@ -66,6 +66,15 @@ where
 }
 
 
+/// An enumeration of the different "modes" of writing to a file.
+enum WriteMode {
+  /// Append the provided content to the file.
+  Append,
+  /// Overwrite any existing file content by truncating the file first.
+  Overwrite,
+}
+
+
 /// A type representing a git repositories and providing high level
 /// operations on it.
 struct GitRepo {
@@ -170,7 +179,7 @@ impl GitRepo {
   }
 
   /// Write the provided data to a file in the repository.
-  fn write<P>(&self, path: P, data: &str) -> Result<()>
+  fn write<P>(&self, path: P, data: &str, mode: WriteMode) -> Result<()>
   where
     P: AsRef<Path>,
   {
@@ -182,13 +191,17 @@ impl GitRepo {
       ))
     }
 
-    let mut file = File::options()
-      .create(true)
-      .read(false)
-      .write(true)
-      .truncate(true)
-      .open(self.directory.path().join(path))?;
-    file.write_all(data.as_bytes())?;
+    let mut options = File::options();
+    options.create(true).read(false).write(true);
+
+    match mode {
+      WriteMode::Append => options.append(true),
+      WriteMode::Overwrite => options.truncate(true),
+    };
+
+    let () = options
+      .open(self.directory.path().join(path))?
+      .write_all(data.as_bytes())?;
     Ok(())
   }
 
@@ -237,11 +250,15 @@ fn blame_single_file_single_line() {
   let repo = GitRepo::new().unwrap();
   repo.commit(["--allow-empty"]).unwrap();
 
-  repo.write("main.py", "# main.py").unwrap();
+  repo
+    .write("main.py", "# main.py", WriteMode::Overwrite)
+    .unwrap();
   repo.add(["main.py"]).unwrap();
   repo.commit(NO_ARGS).unwrap();
 
-  repo.write("main.py", "# main.py\n# Hello, World!").unwrap();
+  repo
+    .write("main.py", "# Hello, World!", WriteMode::Append)
+    .unwrap();
   let short = format!("--short={GIT_SHA1_DIGITS}");
   let sha1 = String::from_utf8(repo.rev_parse([&short, "HEAD"]).unwrap()).unwrap();
   let sha1 = sha1.trim();
@@ -267,7 +284,9 @@ fn blame_removed_file() {
   let repo = GitRepo::new().unwrap();
   repo.commit(["--allow-empty"]).unwrap();
 
-  repo.write("main.py", "# main.py").unwrap();
+  repo
+    .write("main.py", "# main.py", WriteMode::Overwrite)
+    .unwrap();
   repo.add(["main.py"]).unwrap();
   repo.commit(NO_ARGS).unwrap();
   repo.remove(["main.py"]).unwrap();
@@ -295,11 +314,15 @@ fn blame_with_additional_arguments() {
   let repo = GitRepo::new().unwrap();
   repo.commit(["--allow-empty"]).unwrap();
 
-  repo.write("main.py", "# main.py").unwrap();
+  repo
+    .write("main.py", "# main.py", WriteMode::Overwrite)
+    .unwrap();
   repo.add(["main.py"]).unwrap();
   repo.commit(NO_ARGS).unwrap();
 
-  repo.write("main.py", "# Hello, World!").unwrap();
+  repo
+    .write("main.py", "# Hello, World!", WriteMode::Append)
+    .unwrap();
   let sha1 = String::from_utf8(repo.rev_parse(["HEAD"]).unwrap()).unwrap();
   let sha1 = sha1.trim();
 
