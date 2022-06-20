@@ -165,17 +165,21 @@ impl GitRepo {
   }
 
   /// Run `git rev-parse`, passing in the provided arguments.
-  fn rev_parse<A, S>(&self, args: A) -> Result<Vec<u8>>
+  fn rev_parse<A, S>(&self, args: A) -> Result<String>
   where
     A: IntoIterator<Item = S>,
     S: ToString,
   {
-    self.git_out(
+    let output = self.git_out(
       ["rev-parse"]
         .into_iter()
         .map(ToString::to_string)
         .chain(args.into_iter().map(|s| s.to_string())),
-    )
+    )?;
+
+    let sha1 = String::from_utf8(output).map_err(|error| Error::new(ErrorKind::Other, error))?;
+    let sha1 = sha1.trim();
+    Ok(sha1.to_string())
   }
 
   /// Write the provided data to a file in the repository.
@@ -260,8 +264,7 @@ fn blame_single_file_single_line() {
     .write("main.py", "# Hello, World!", WriteMode::Append)
     .unwrap();
   let short = format!("--short={GIT_SHA1_DIGITS}");
-  let sha1 = String::from_utf8(repo.rev_parse([&short, "HEAD"]).unwrap()).unwrap();
-  let sha1 = sha1.trim();
+  let sha1 = repo.rev_parse([&short, "HEAD"]).unwrap();
 
   // Contrary to `git-rev-parse`, `git-blame` adds one to the provided
   // length of the SHA-1.
@@ -292,8 +295,7 @@ fn blame_removed_file() {
   repo.remove(["main.py"]).unwrap();
 
   let short = format!("--short={GIT_SHA1_DIGITS}");
-  let sha1 = String::from_utf8(repo.rev_parse([&short, "HEAD"]).unwrap()).unwrap();
-  let sha1 = sha1.trim();
+  let sha1 = repo.rev_parse([&short, "HEAD"]).unwrap();
 
   let abbrev = format!("--abbrev={}", GIT_SHA1_DIGITS - 1);
   let out = repo.blamediff(["--staged"], [abbrev]).unwrap();
@@ -323,8 +325,7 @@ fn blame_with_additional_arguments() {
   repo
     .write("main.py", "# Hello, World!", WriteMode::Append)
     .unwrap();
-  let sha1 = String::from_utf8(repo.rev_parse(["HEAD"]).unwrap()).unwrap();
-  let sha1 = sha1.trim();
+  let sha1 = repo.rev_parse(["HEAD"]).unwrap();
 
   // Tell git-blame to use the long format for SHA-1 checksums.
   let out = repo.blamediff(NO_ARGS, ["-l"]).unwrap();
