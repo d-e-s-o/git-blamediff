@@ -338,3 +338,87 @@ fn blame_with_additional_arguments() {
 
   assert_eq!(String::from_utf8(out).unwrap(), expected)
 }
+
+
+/// Verify that we can annotate multiple hunks in multiple diffs.
+#[test]
+fn blame_with_multiple_hunks_and_files() {
+  let repo = GitRepo::new().unwrap();
+  repo.commit(["--allow-empty"]).unwrap();
+
+  repo
+    .write("main.py", "# main.py", WriteMode::Overwrite)
+    .unwrap();
+  repo.add(["main.py"]).unwrap();
+  repo.commit(NO_ARGS).unwrap();
+  let sha1_mainpy = repo.rev_parse(["HEAD"]).unwrap();
+
+  let foobar = r#"
+// foobar.c
+
+// <insert long-winded explanation of what the program does >
+
+int main(int argc, char const* argv[])
+  if (argc > 1) {
+    fprintf(stderr, "Too many arguments.\\n");
+    return -1;
+  }
+  printf("Hello world!");
+  return 0;
+}
+"#;
+  repo
+    .write("foobar.c", foobar, WriteMode::Overwrite)
+    .unwrap();
+  repo.add(["foobar.c"]).unwrap();
+  repo.commit(NO_ARGS).unwrap();
+
+  let sha1_foobarc = repo.rev_parse(["HEAD"]).unwrap();
+
+  repo
+    .write("main.py", "# Hello, World!", WriteMode::Append)
+    .unwrap();
+  let foobar = r#"
+// foobar.c
+// Copyright (C) 2022 Daniel Mueller <deso@posteo.net>
+
+// <insert long-winded explanation of what the program does >
+
+int main(int argc, char const* argv[])
+  if (argc > 1) {
+    fprintf(stderr, "Too many arguments.\\n");
+    return -1;
+  }
+  printf("Hello world!\\n");
+  return 0;
+}
+"#;
+  repo
+    .write("foobar.c", foobar, WriteMode::Overwrite)
+    .unwrap();
+
+  let out = repo.blamediff(NO_ARGS, ["-l"]).unwrap();
+  let expected = format!(
+    r#"--- foobar.c
++++ foobar.c
+{sha1_foobarc} 1) 
+{sha1_foobarc} 2) // foobar.c
+{sha1_foobarc} 3) 
+{sha1_foobarc} 4) // <insert long-winded explanation of what the program does >
+{sha1_foobarc} 5) 
+--- foobar.c
++++ foobar.c
+{sha1_foobarc}  8)     fprintf(stderr, "Too many arguments.\\n");
+{sha1_foobarc}  9)     return -1;
+{sha1_foobarc} 10)   }}
+{sha1_foobarc} 11)   printf("Hello world!");
+{sha1_foobarc} 12)   return 0;
+{sha1_foobarc} 13) }}
+--- main.py
++++ main.py
+{sha1_mainpy} 1) # main.py
+"#
+  );
+
+  assert_eq!(String::from_utf8(out).unwrap(), expected)
+}
