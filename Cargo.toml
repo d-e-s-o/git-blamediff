@@ -34,8 +34,6 @@ incremental = false
 
 [dependencies]
 diff-parse = {version = "0.1"}
-once_cell = {version = "1.10.0", default-features = false, features = ["std"]}
-regex = {version = "1.5.5", default-features = false, features = ["perf", "std"]}
 
 [dev-dependencies]
 tempfile = {version = "3.3.0", default-features = false}
