@@ -10,6 +10,7 @@ readme = "README.md"
 description = """
 A program to automatically annotate changes to a file in git(1).
 """
+include = ["src/**/*", "LICENSE", "README.md"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
