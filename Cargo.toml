@@ -1,11 +1,24 @@
 [package]
 name = "git-blamediff"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2021"
 authors = ["Daniel Mueller <deso@posteo.net>"]
 license = "GPL-3.0-or-later"
 homepage = "https://github.com/d-e-s-o/git-blamediff"
 repository = "https://github.com/d-e-s-o/git-blamediff.git"
+categories = [
+  "command-line-utilities",
+  "development-tools",
+  "parser-implementations",
+  "text-processing",
+]
+keywords = [
+  "cli",
+  "diff",
+  "git",
+  "text",
+  "utility",
+]
 readme = "README.md"
 description = """
 A program to automatically annotate changes to a file in git(1).
