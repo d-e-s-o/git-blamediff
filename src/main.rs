@@ -5,8 +5,8 @@ use std::env::args;
 use std::io::stdin;
 use std::io::Result;
 
+use diff_parse::Parser;
 use git_blamediff::blame;
-use git_blamediff::diff::Parser;
 
 
 /// Parse the diff from stdin and invoke git blame on each hunk.

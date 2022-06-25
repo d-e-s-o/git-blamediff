@@ -1,8 +1,6 @@
 // Copyright (C) 2022 Daniel Mueller <deso@posteo.net>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub mod diff;
-
 use std::env::Args;
 use std::ffi::OsStr;
 use std::io::stdout;
@@ -18,7 +16,7 @@ use std::process::ChildStdout;
 use std::process::Command;
 use std::process::Stdio;
 
-use diff::File;
+use diff_parse::File;
 
 
 /// The path to the `git` binary used by default.

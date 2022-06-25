@@ -1,6 +1,7 @@
 git-blamediff
 =============
 
+- [Changelog](CHANGELOG.md)
 
 Purpose
 -------
