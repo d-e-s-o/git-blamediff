@@ -1,5 +1,5 @@
-Unreleased
-----------
+0.1.1
+-----
 - Factored out diff parsing functionality into `diff-parse` crate
 - Added `diff-parse` dependency
 
