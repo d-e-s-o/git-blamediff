@@ -1,5 +1,5 @@
-Unreleased
-----------
+0.1.2
+-----
 - Removed unused `once_cell` and `regex` dependencies
 - Added GitHub Actions based CI workflow
 
